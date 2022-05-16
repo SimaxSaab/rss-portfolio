@@ -194,3 +194,153 @@ function toggleTheme() {
   setLocalTheme();
   themeSwitcher.textContent = i18Obj[lis]['switch-theme'][tis];
 };
+
+
+// === / CLICK EFFECT FOR ALL BUTTONS ===
+
+// === GET ELEMENTS ===
+
+const player = document.querySelector('.player');
+const video = player.querySelector('.viewer');
+
+const playButtonMain = player.querySelector('.button__play__main');
+const playButton = player.querySelector('.button__play');
+
+const progressBar = player.querySelector('.progress');
+const progressBarFilled = player.querySelector('.progress__filled');
+
+const skipButtons = player.querySelectorAll('[data-skip]');
+const volumeButton = player.querySelector('.button__volume');
+const volumeRangeValue = player.querySelector('.volume__slider');
+const volumeSliderText = player.querySelector('.volume__slider__text');
+const speedRangeValue = player.querySelector('.speed__slider');
+const speedSliderText = player.querySelector('.speed__slider__text');
+
+const currentTimeValue = player.querySelector('.current__time');
+const totalTimeValue = player.querySelector('.total__time');
+
+const fullscreenButton = player.querySelector('.button__fullscreen');
+
+// === / GET ELEMENTS ===
+
+// === FUNCTION CREATION ===
+
+// Update total time for video
+function totalTimeValueUpdate() {
+  let num = video.duration;
+  let minutes = Math.floor(num / 60);
+  let seconds = num % 60;
+  totalTimeValue.textContent = `${minutes}:${seconds.toFixed()}`;
+}
+
+// Update current time for video
+function currentTimeValueUpdate() {
+  let num = video.currentTime;
+  let minutes = Math.floor(num / 60);
+  let seconds = num % 60;
+  currentTimeValue.textContent = `${minutes}:${seconds.toFixed()}`;
+}
+
+// Update style of play button
+function togglePlayButton() {
+  const playButtonMethod = video.paused ? 'play' : 'pause';
+  video[playButtonMethod]();
+  playButtonMain.classList.toggle('active');
+  playButton.classList.toggle('active');
+}
+
+// Update style of volume button
+function toggleVolumeButton() {
+  if (video.muted === false) {
+    video.muted = true;
+  } else {
+    video.muted = false;
+  }
+  volumeButton.classList.toggle('muted');
+}
+
+// Function for volume range
+function volumeRangeUpdate() {
+  video[this.name] = this.value;
+  volumeSliderText.textContent = `${Number((video[this.name]) * 100).toFixed()}%`;
+  if (video.muted === true) {
+    volumeButton.classList.toggle('muted');
+  }
+}
+
+// Function for skip buttons
+function skip() {
+  video.currentTime += parseFloat(this.dataset.skip);
+}
+
+// Function for speed range
+function speedRangeUpdate() {
+  video[this.name] = this.value;
+  speedSliderText.textContent = `${Number(video[this.name]).toFixed(1)}x`;
+}
+
+// Function for filling progress bar
+function handleProgress() {
+  const percent = (video.currentTime / video.duration) * 100;
+  progressBarFilled.style.flexBasis = `${percent}%`;
+}
+
+// Function for filling progress bar
+function scrub(e) {
+  const scrubTime = (e.offsetX / progressBar.offsetWidth) * video.duration;
+  video.currentTime = scrubTime;
+}
+
+// Function for open fullscreen
+function openFullscreen() {
+  if (player.requestFullscreen) {
+    player.requestFullscreen();
+  } else if (player.webkitRequestFullscreen) {
+    player.webkitRequestFullscreen();
+  } else if (player.msRequestFullscreen) {
+    player.msRequestFullscreen();
+  }
+  fullscreenButton.classList.toggle('active');
+}
+
+// Function for close fullscreen
+function closeFullscreen() {
+  if (document.fullscreenElement !== null) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+  fullscreenButton.classList.toggle('active');
+}
+
+// === / FUNCTION CREATION ===
+
+// === EVENT LISTENERS ===
+
+video.addEventListener('click', togglePlayButton);
+video.addEventListener('timeupdate', totalTimeValueUpdate);
+video.addEventListener('timeupdate', currentTimeValueUpdate);
+video.addEventListener('timeupdate', handleProgress);
+
+playButtonMain.addEventListener('click', togglePlayButton);
+playButton.addEventListener('click', togglePlayButton);
+
+volumeButton.addEventListener('click', toggleVolumeButton);
+volumeRangeValue.addEventListener('change', volumeRangeUpdate);
+volumeRangeValue.addEventListener('mousemove', volumeRangeUpdate);
+
+skipButtons.forEach(x => x.addEventListener('click', skip));
+speedRangeValue.addEventListener('change', speedRangeUpdate);
+speedRangeValue.addEventListener('mousemove', speedRangeUpdate);
+
+let mousedown = false;
+
+progressBar.addEventListener('click', scrub);
+progressBar.addEventListener('mousemove', (e) => mousedown && scrub(e));
+progressBar.addEventListener('mousedown', () => mousedown = true);
+progressBar.addEventListener('mouseup', () => mousedown = false);
+
+fullscreenButton.addEventListener('click', openFullscreen);
+fullscreenButton.addEventListener('click', closeFullscreen);
